@@ -1,0 +1,22 @@
+version: '3.9'
+services:
+  postgresql:
+    image: postgres:16
+    container_name: parking-psql
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "password"
+    volumes:
+      - ./postgresql:/var/lib/postgresql/data
+  mail:
+    image: mailhog/mailhog
+    container_name: parking-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+volumes:
+  psql_data:
+    driver: local
