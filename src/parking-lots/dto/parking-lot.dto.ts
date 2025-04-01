@@ -7,6 +7,9 @@ export class ParkingLotDto {
   size: number;
 
   @Expose()
+  freeSpaces: number;
+
+  @Expose()
   costPerHour: number;
 
   @Expose({ name: 'partnerId' })

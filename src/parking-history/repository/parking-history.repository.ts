@@ -18,9 +18,9 @@ export class ParkingHistoryRepository {
 
   async findOneByVehicleId(vehicleId: number): Promise<ParkingHistory | null> {
     return this.repository.findOne({
-      where: { vehicle: { id: vehicleId }, dateOfDeparture: IsNull() },
+      where: { vehicle: { id: vehicleId }, checkOutDate: IsNull() },
       relations: ['vehicle'],
-      order: { dateOfEntry: 'DESC' },
+      order: { checkInDate: 'DESC' },
     });
   }
 
@@ -32,10 +32,10 @@ export class ParkingHistoryRepository {
       where: {
         vehicle: { id: vehicleId },
         parkingLot: { id: parkingId },
-        dateOfDeparture: IsNull(),
+        checkOutDate: IsNull(),
       },
       relations: ['vehicle'],
-      order: { dateOfEntry: 'DESC' },
+      order: { checkInDate: 'DESC' },
     });
   }
 
@@ -46,9 +46,9 @@ export class ParkingHistoryRepository {
   async updateTimeInParkingLot(
     data: Partial<ParkingHistory>,
   ): Promise<ParkingHistory> {
-    if (data.dateOfDeparture && data.dateOfEntry) {
+    if (data.checkOutDate && data.checkInDate) {
       const timeInMilliseconds: number =
-        data.dateOfDeparture.getTime() - data.dateOfEntry.getTime();
+        data.checkOutDate.getTime() - data.checkInDate.getTime();
       const timeInSeconds: number = timeInMilliseconds / 1000;
       const timeInParkingLot: number = Math.floor(timeInSeconds);
       const dataUpdate = {

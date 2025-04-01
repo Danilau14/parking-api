@@ -11,10 +11,10 @@ export class ParkingHistoryDto {
   parkingLot: ParkingLot;
 
   @Expose()
-  dateOfEntry: Date;
+  checkInDate: Date;
 
   @Expose()
-  dateOfDeparture: Date;
+  checkOutDate: Date;
 
   @Expose()
   @Transform(({ obj }: { obj: ParkingHistory }): string | null =>

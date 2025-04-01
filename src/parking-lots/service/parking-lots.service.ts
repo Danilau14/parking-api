@@ -20,6 +20,7 @@ export class ParkingLotsService {
     if (createParkingLotDto.partnerId === undefined) {
       const newParkingLot: Partial<ParkingLotDto> = {
         size: createParkingLotDto.size,
+        freeSpaces: createParkingLotDto.size,
         costPerHour: createParkingLotDto.costPerHour,
       };
 
@@ -35,6 +36,7 @@ export class ParkingLotsService {
 
     const newParkingLot: Partial<ParkingLotDto> = {
       size: createParkingLotDto.size,
+      freeSpaces: createParkingLotDto.size,
       costPerHour: createParkingLotDto.costPerHour,
       user: partnerExist,
     };

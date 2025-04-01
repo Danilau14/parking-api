@@ -14,10 +14,10 @@ export class ParkingHistory {
     type: 'timestamptz',
     default: () => 'CURRENT_TIMESTAMP',
   })
-  dateOfEntry: Date;
+  checkInDate: Date;
 
   @Column({ type: 'timestamptz', nullable: true })
-  dateOfDeparture: Date;
+  checkOutDate: Date;
 
   @Column({ nullable: true })
   timeInParkingLot: number;

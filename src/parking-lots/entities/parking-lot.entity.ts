@@ -13,6 +13,7 @@ import { User } from '../../users/entities/user.entity';
 @Entity()
 @Check('"costPerHour" > 0')
 @Check('"size" > 0')
+@Check('"freeSpaces" >= 0')
 export class ParkingLot {
   @PrimaryGeneratedColumn()
   id: number;
@@ -22,6 +23,9 @@ export class ParkingLot {
 
   @Column({ nullable: false, type: 'float' })
   costPerHour: number;
+
+  @Column({ nullable: false, type: 'int' })
+  freeSpaces: number;
 
   @Column({ default: false })
   recycleBin: boolean;

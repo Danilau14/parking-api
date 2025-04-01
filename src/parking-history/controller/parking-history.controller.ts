@@ -5,7 +5,7 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
+  Delete, HttpCode, HttpStatus,
 } from '@nestjs/common';
 import { ParkingHistoryService } from '../service/parking-history.service';
 import { CreateParkingHistoryDto } from '../dto/create-parking-history.dto';
@@ -27,24 +27,34 @@ export class ParkingHistoryController {
     return plainToInstance(ParkingHistoryDto, parkingHistory);
   }
 
-  @Post('register-entry')
-  createParkingHistory(
+  @Post('check-in')
+  @HttpCode(HttpStatus.CREATED)
+  async createParkingHistory(
     @Body() createParkingHistoryDto: CreateParkingHistoryDto,
-  ): ParkingHistoryDto {
-    const parkingHistory: Promise<ParkingHistory> =
-      this.parkingHistoryService.createParkingHistory(createParkingHistoryDto);
-    return plainToInstance(ParkingHistoryDto, parkingHistory);
+  ) {
+    const parkingHistory: ParkingHistory =
+      await this.parkingHistoryService.createParkingHistory(
+        createParkingHistoryDto,
+      );
+    return {
+      id: parkingHistory.id,
+    };
   }
 
-  @Patch('register-departure')
+  @Patch('check-out')
+  @HttpCode(HttpStatus.OK)
   async closeParkingHistory(
     @Body() createParkingHistoryDto: CreateParkingHistoryDto,
-  ): Promise<ParkingHistoryDto> {
+  ): Promise<{ message: string; parkingHistory: ParkingHistoryDto }> {
     const parkingHistory: ParkingHistory =
       await this.parkingHistoryService.closeParkingHistory(
         createParkingHistoryDto,
       );
-    return plainToInstance(ParkingHistoryDto, parkingHistory);
+
+    return {
+      message: 'Check out registered',
+      parkingHistory: plainToInstance(ParkingHistoryDto, parkingHistory)
+    };
   }
 
   @Get()

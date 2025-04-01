@@ -51,7 +51,7 @@ export class ParkingHistoryService {
         const parkingHistoryUpdate: ParkingHistory =
           await this.parkingHistoryRepository.updateTimeInParkingLot({
             ...parkingHistoryOpen,
-            dateOfDeparture: new Date(),
+            checkOutDate: new Date(),
           });
 
         await this.vehiclesRepository.update({
@@ -132,6 +132,10 @@ export class ParkingHistoryService {
     createParkingHistoryDto: CreateParkingHistoryDto,
     parkingLot: ParkingLot,
   ): Promise<ParkingHistory> {
+    if (parkingLot.freeSpaces == 0) {
+      throw new BadRequestException('Parking lot full');
+    }
+
     const newVehicle: CreateVehicleDto = {
       licensePlate: createParkingHistoryDto.licensePlate,
       recycleBin: false,
@@ -140,9 +144,14 @@ export class ParkingHistoryService {
 
     const vehicle: Vehicle = await this.vehiclesRepository.create(newVehicle);
 
+    parkingLot.freeSpaces -= 1;
+
+    const updatedParkingLot: ParkingLot =
+      await this.parkingLotsRepository.update(parkingLot);
+
     const newParkingHistory: Partial<ParkingHistory> = {
       vehicle: vehicle,
-      parkingLot: parkingLot,
+      parkingLot: updatedParkingLot,
     };
 
     return await this.parkingHistoryRepository.create(newParkingHistory);
@@ -162,14 +171,23 @@ export class ParkingHistoryService {
       throw new BadRequestException('Vehicle in other Parking lot');
     }
 
+    if (parkingLot.freeSpaces === 0) {
+      throw new BadRequestException('Parking lot full');
+    }
+
     const updatedVehicle = await this.vehiclesRepository.update({
       ...vehicle,
       isParked: true,
     });
 
+    parkingLot.freeSpaces -= 1;
+
+    const updatedParkingLot: ParkingLot =
+      await this.parkingLotsRepository.update(parkingLot);
+
     const newParkingHistory: Partial<ParkingHistory> = {
       vehicle: updatedVehicle,
-      parkingLot: parkingLot,
+      parkingLot: updatedParkingLot,
     };
 
     return await this.parkingHistoryRepository.create(newParkingHistory);
@@ -207,12 +225,17 @@ export class ParkingHistoryService {
     const parkingHistoryUpdate: ParkingHistory =
       await this.parkingHistoryRepository.updateTimeInParkingLot({
         ...parkingHistoryOpen,
-        dateOfDeparture: new Date(),
+        checkOutDate: new Date(),
       });
 
     await this.vehiclesRepository.update({
       ...vehicle,
       isParked: false,
+    });
+
+    await this.parkingLotsRepository.update({
+      ...parkingLot,
+      freeSpaces: (parkingLot.freeSpaces += 1),
     });
 
     return parkingHistoryUpdate;
