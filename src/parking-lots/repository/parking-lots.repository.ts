@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { ParkingLot } from '../entities/parking-lot.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class ParkingLotsRepository {
@@ -18,16 +19,27 @@ export class ParkingLotsRepository {
   async findAndCount(
     page: number,
     limit: number,
+    userId: number | null = null,
   ): Promise<[ParkingLot[], number]> {
-    return await this.repository
-      .createQueryBuilder('parkingLot')
+    const queryBuilder: SelectQueryBuilder<ParkingLot> =
+      this.repository.createQueryBuilder('parkingLot');
+
+    queryBuilder
       .leftJoinAndSelect('parkingLot.user', 'user')
       .select([
         'parkingLot.id',
         'parkingLot.size',
         'parkingLot.costPerHour',
         'user.id',
-      ])
+      ]);
+
+    console.log(userId);
+
+    if (userId !== null) {
+      queryBuilder.where('user.id = :userId', { userId });
+    }
+
+    return queryBuilder
       .orderBy('parkingLot.id', 'ASC')
       .skip((page - 1) * limit)
       .take(limit)
@@ -38,6 +50,18 @@ export class ParkingLotsRepository {
     return await this.repository.findOne({
       where: { id },
       relations: ['user'],
+    });
+  }
+
+  async findByParkingLotAndUser(
+    parkingLotId: number,
+    user: User,
+  ): Promise<ParkingLot | null> {
+    return await this.repository.findOne({
+      where: {
+        id: parkingLotId,
+        user: user,
+      },
     });
   }
 

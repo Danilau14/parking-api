@@ -63,7 +63,7 @@ export class ParkingHistoryRepository {
   async findVehiclesByParkingLot(
     page: number,
     limit: number,
-    parkingLotId?: number,
+    parkingLotId: number | null = null,
   ): Promise<[ParkingHistory[], number]> {
     const queryBuilder: SelectQueryBuilder<ParkingHistory> = this.repository
       .createQueryBuilder('history')

@@ -6,26 +6,26 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
   Query,
+  Req,
 } from '@nestjs/common';
 import { ParkingLotsService } from '../service/parking-lots.service';
 import { CreateParkingLotDto } from '../dto/create-parking-lot.dto';
 import { UpdateParkingLotDto } from '../dto/update-parking-lot.dto';
-import { UserGuard } from '../../users/guard/user.guard';
-import { IsAdmin } from '../../common/decorators/is-admin.decorator';
 import { ParkingLot } from '../entities/parking-lot.entity';
 import { plainToInstance } from 'class-transformer';
 import { ParkingLotDto } from '../dto/parking-lot.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
+import { RequestWithUserInterface } from '../../common/interfaces/requets-with-user';
+import { User, UserRole } from '../../users/entities/user.entity';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 @Controller('parking-lots')
-@UseGuards(UserGuard)
-@IsAdmin()
 export class ParkingLotsController {
   constructor(private readonly parkingLotsService: ParkingLotsService) {}
 
   @Post()
+  @Roles(UserRole.ADMIN)
   async create(
     @Body() createParkingLotDto: CreateParkingLotDto,
   ): Promise<ParkingLotDto> {
@@ -35,6 +35,7 @@ export class ParkingLotsController {
   }
 
   @Get('all')
+  @Roles(UserRole.ADMIN)
   async findAll(@Query() paginationDto: PaginationDto) {
     const { data, total, page, totalPages } =
       await this.parkingLotsService.findAllParkingLots(paginationDto);
@@ -46,7 +47,26 @@ export class ParkingLotsController {
     };
   }
 
+  @Get('all-by-partner')
+  @Roles(UserRole.PARTNER)
+  async findAllByPartner(
+    @Query() paginationDto: PaginationDto,
+    @Req() req: RequestWithUserInterface,
+  ) {
+    const user: User = req.user;
+
+    const { data, total, page, totalPages } =
+      await this.parkingLotsService.findAllParkingLots(paginationDto, user);
+    return {
+      data: plainToInstance(ParkingLotDto, data),
+      total,
+      page,
+      totalPages,
+    };
+  }
+
   @Get(':id')
+  @Roles(UserRole.ADMIN)
   async findOne(@Param('id') id: number): Promise<ParkingLotDto | null> {
     const parkingLotDto: ParkingLot | null =
       await this.parkingLotsService.findParkingLotById(id);
@@ -54,6 +74,7 @@ export class ParkingLotsController {
   }
 
   @Patch(':id')
+  @Roles(UserRole.ADMIN)
   update(
     @Param('id') id: number,
     @Body() updateParkingLotDto: UpdateParkingLotDto,
@@ -65,6 +86,7 @@ export class ParkingLotsController {
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN)
   remove(@Param('id') id: number): ParkingLotDto {
     return plainToInstance(
       ParkingLotDto,

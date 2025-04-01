@@ -44,20 +44,19 @@ export class ParkingLotsService {
     return this.parkingLotsRepository.create(newParkingLot);
   }
 
-  async findAllParkingLots(paginationDto: PaginationDto) {
+  async findAllParkingLots(
+    paginationDto: PaginationDto,
+    user: User | null = null,
+  ) {
     const { page, limit } = paginationDto;
 
     const [data, total] = await this.parkingLotsRepository.findAndCount(
       page,
       limit,
+      user?.id,
     );
 
-    return {
-      data,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit),
-    };
+    return { data, total, page, totalPages: Math.ceil(total / limit) };
   }
 
   async findParkingLotById(id: number): Promise<ParkingLot | null> {

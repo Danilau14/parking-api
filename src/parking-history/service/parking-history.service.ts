@@ -13,6 +13,7 @@ import { ParkingLotsRepository } from '../../parking-lots/repository/parking-lot
 import { CreateVehicleDto } from '../../vehicles/dto/create-vehicle.dto';
 import { ParkingHistory } from '../entities/parking-history.entity';
 import { PaginationDto } from '../../common/dto/pagination.dto';
+import { User, UserRole } from '../../users/entities/user.entity';
 
 @Injectable()
 export class ParkingHistoryService {
@@ -244,8 +245,21 @@ export class ParkingHistoryService {
 
   async findVehiclesWithParkingLot(
     paginationDto: PaginationDto,
-    parkingLotId?: number,
+    parkingLotId: number | null = null,
+    user: User | null = null,
   ) {
+    if (parkingLotId && user?.role === UserRole.PARTNER) {
+      const parkingLot: ParkingLot | null =
+        await this.parkingLotsRepository.findByParkingLotAndUser(
+          parkingLotId,
+          user,
+        );
+      if (!parkingLot) {
+        throw new BadRequestException(
+          'The parkingLot does not have this associated partner',
+        );
+      }
+    }
     const { page, limit } = paginationDto;
 
     const [data, total] =

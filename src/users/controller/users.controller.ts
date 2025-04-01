@@ -13,17 +13,16 @@ import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { plainToInstance } from 'class-transformer';
 import { UserDto } from '../dto/user.dto';
-import { UserGuard } from '../guard/user.guard';
-import { IsAdmin } from '../../common/decorators/is-admin.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { UserRole } from '../entities/user.entity';
 
 @Controller('users')
-@UseGuards(UserGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
   @HttpCode(201)
-  @IsAdmin()
+  @Roles(UserRole.ADMIN)
   async create(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
     const user = await this.usersService.createUser(createUserDto);
     return plainToInstance(UserDto, user);
