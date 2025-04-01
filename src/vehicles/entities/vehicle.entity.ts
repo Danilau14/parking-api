@@ -1,13 +1,27 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
 import { ParkingHistory } from '../../parking-history/entities/parking-history.entity';
 
 @Entity()
+@Unique(['licensePlate'])
 export class Vehicle {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  licencePlate: string;
+  @Column({
+    nullable: false,
+    type: 'text',
+    transformer: {
+      to: (value: string) => value?.toUpperCase(),
+      from: (value: string) => value,
+    },
+  })
+  licensePlate: string;
 
   @Column({ default: false })
   isParked: boolean;

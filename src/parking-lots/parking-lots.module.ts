@@ -10,5 +10,6 @@ import { UsersModule } from '../users/users.module';
   imports: [TypeOrmModule.forFeature([ParkingLot]), UsersModule],
   controllers: [ParkingLotsController],
   providers: [ParkingLotsService, ParkingLotsRepository],
+  exports: [ParkingLotsRepository],
 })
 export class ParkingLotsModule {}

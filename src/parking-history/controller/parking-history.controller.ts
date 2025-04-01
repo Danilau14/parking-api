@@ -10,14 +10,21 @@ import {
 import { ParkingHistoryService } from '../service/parking-history.service';
 import { CreateParkingHistoryDto } from '../dto/create-parking-history.dto';
 import { UpdateParkingHistoryDto } from '../dto/update-parking-history.dto';
+import { ParkingHistoryDto } from '../dto/parking-history.dto';
+import { plainToInstance } from 'class-transformer';
+import { ParkingHistory } from '../entities/parking-history.entity';
 
 @Controller('parking-history')
 export class ParkingHistoryController {
   constructor(private readonly parkingHistoryService: ParkingHistoryService) {}
 
   @Post()
-  create(@Body() createParkingHistoryDto: CreateParkingHistoryDto) {
-    return this.parkingHistoryService.create(createParkingHistoryDto);
+  create(
+    @Body() createParkingHistoryDto: CreateParkingHistoryDto,
+  ): ParkingHistoryDto {
+    const parkingHistory: Promise<ParkingHistory> =
+      this.parkingHistoryService.createParkingHistory(createParkingHistoryDto);
+    return plainToInstance(ParkingHistoryDto, parkingHistory);
   }
 
   @Get()

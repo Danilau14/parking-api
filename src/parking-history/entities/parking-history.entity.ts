@@ -10,6 +10,18 @@ export class ParkingHistory {
   @Column({ default: false })
   recycleBin: boolean;
 
+  @Column({
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  dateOfEntry: Date;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  dateOfDeparture: Date;
+
+  @Column({ nullable: true })
+  timeInParkingLot: number;
+
   @ManyToOne(
     (): typeof Vehicle => Vehicle,
     (vehicle: Vehicle): ParkingHistory[] => vehicle.parkingHistories,
@@ -21,13 +33,4 @@ export class ParkingHistory {
     (parkingLot: ParkingLot): ParkingHistory[] => parkingLot.parkingHistories,
   )
   parkingLot: ParkingLot;
-
-  @Column({
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
-  })
-  dateOfEntry: Date;
-
-  @Column({ type: 'timestamp', nullable: true })
-  dateOfDeparture: Date;
 }
