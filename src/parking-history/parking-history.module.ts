@@ -15,5 +15,6 @@ import { ParkingHistoryRepository } from './repository/parking-history.repositor
   ],
   controllers: [ParkingHistoryController],
   providers: [ParkingHistoryService, ParkingHistoryRepository],
+  exports: [ParkingHistoryRepository],
 })
 export class ParkingHistoryModule {}

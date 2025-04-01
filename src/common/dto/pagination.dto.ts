@@ -13,4 +13,7 @@ export class PaginationDto {
   @IsInt()
   @Min(1)
   limit: number = 10;
+
+  @IsOptional()
+  q: number | string;
 }

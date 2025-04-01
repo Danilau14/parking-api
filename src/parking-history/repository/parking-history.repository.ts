@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, Repository, SelectQueryBuilder } from 'typeorm';
 import { ParkingHistory } from '../entities/parking-history.entity';
 
 @Injectable()
@@ -8,8 +8,7 @@ export class ParkingHistoryRepository {
   constructor(
     @InjectRepository(ParkingHistory)
     private readonly repository: Repository<ParkingHistory>,
-  ) {
-  }
+  ) {}
 
   async create(data: Partial<ParkingHistory>): Promise<ParkingHistory> {
     const parkingHistory: ParkingHistory = this.repository.create(data);
@@ -59,5 +58,28 @@ export class ParkingHistoryRepository {
       return this.repository.save(dataUpdate);
     }
     throw new BadRequestException('Dates must be different null');
+  }
+
+  async findVehiclesByParkingLot(
+    page: number,
+    limit: number,
+    parkingLotId?: number,
+  ): Promise<[ParkingHistory[], number]> {
+    const queryBuilder: SelectQueryBuilder<ParkingHistory> = this.repository
+      .createQueryBuilder('history')
+      .innerJoinAndSelect('history.vehicle', 'vehicle')
+      .innerJoinAndSelect('history.parkingLot', 'parkingLot')
+      .where('history."checkOutDate" IS NULL');
+
+    if (parkingLotId) {
+      queryBuilder.andWhere('history."parkingLotId" = :parkingLotId', {
+        parkingLotId,
+      });
+    }
+
+    return await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
   }
 }

@@ -12,6 +12,7 @@ import { ParkingLot } from '../../parking-lots/entities/parking-lot.entity';
 import { ParkingLotsRepository } from '../../parking-lots/repository/parking-lots.repository';
 import { CreateVehicleDto } from '../../vehicles/dto/create-vehicle.dto';
 import { ParkingHistory } from '../entities/parking-history.entity';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 
 @Injectable()
 export class ParkingHistoryService {
@@ -239,6 +240,27 @@ export class ParkingHistoryService {
     });
 
     return parkingHistoryUpdate;
+  }
+
+  async findVehiclesWithParkingLot(
+    paginationDto: PaginationDto,
+    parkingLotId?: number,
+  ) {
+    const { page, limit } = paginationDto;
+
+    const [data, total] =
+      await this.parkingHistoryRepository.findVehiclesByParkingLot(
+        page,
+        limit,
+        parkingLotId,
+      );
+
+    return {
+      data,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   findAll() {

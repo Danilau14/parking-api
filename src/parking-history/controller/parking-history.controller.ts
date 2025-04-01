@@ -5,7 +5,10 @@ import {
   Body,
   Patch,
   Param,
-  Delete, HttpCode, HttpStatus,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { ParkingHistoryService } from '../service/parking-history.service';
 import { CreateParkingHistoryDto } from '../dto/create-parking-history.dto';
@@ -13,6 +16,8 @@ import { UpdateParkingHistoryDto } from '../dto/update-parking-history.dto';
 import { ParkingHistoryDto } from '../dto/parking-history.dto';
 import { plainToInstance } from 'class-transformer';
 import { ParkingHistory } from '../entities/parking-history.entity';
+import { PaginationDto } from '../../common/dto/pagination.dto';
+import { ListVehicleParkedDto } from '../dto/list-vehicle-parked.dto';
 
 @Controller('parking-history')
 export class ParkingHistoryController {
@@ -23,7 +28,9 @@ export class ParkingHistoryController {
     @Body() createParkingHistoryDto: CreateParkingHistoryDto,
   ): ParkingHistoryDto {
     const parkingHistory: Promise<ParkingHistory> =
-      this.parkingHistoryService.createAndUpdatedParkingHistory(createParkingHistoryDto);
+      this.parkingHistoryService.createAndUpdatedParkingHistory(
+        createParkingHistoryDto,
+      );
     return plainToInstance(ParkingHistoryDto, parkingHistory);
   }
 
@@ -57,9 +64,20 @@ export class ParkingHistoryController {
     };
   }
 
-  @Get()
-  findAll() {
-    return this.parkingHistoryService.findAll();
+  @Get('all')
+  async findAll(@Query() paginationDto: PaginationDto) {
+    const { data, total, page, totalPages } =
+      await this.parkingHistoryService.findVehiclesWithParkingLot(
+        paginationDto,
+        Number(paginationDto.q),
+      );
+
+    return {
+      data: plainToInstance(ListVehicleParkedDto, data),
+      total,
+      page,
+      totalPages,
+    };
   }
 
   @Get(':id')
