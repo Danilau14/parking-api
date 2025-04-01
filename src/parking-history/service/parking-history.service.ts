@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateParkingHistoryDto } from '../dto/create-parking-history.dto';
 import { UpdateParkingHistoryDto } from '../dto/update-parking-history.dto';
 import { VehiclesRepository } from '../../vehicles/repository/vehicles.repository';
@@ -17,7 +21,9 @@ export class ParkingHistoryService {
     private readonly parkingLotsRepository: ParkingLotsRepository,
   ) {}
 
-  async createParkingHistory(createParkingHistoryDto: CreateParkingHistoryDto) {
+  async createAndUpdatedParkingHistory(
+    createParkingHistoryDto: CreateParkingHistoryDto,
+  ) {
     const parkingLot: ParkingLot | null =
       await this.parkingLotsRepository.findOneById(
         createParkingHistoryDto.parkingLotId,
@@ -76,6 +82,140 @@ export class ParkingHistoryService {
     };
 
     return await this.parkingHistoryRepository.create(newParkingHistory);
+  }
+
+  private async findVehicleAndParkingLot(
+    createParkingHistoryDto: CreateParkingHistoryDto,
+  ): Promise<{ vehicle: Vehicle | null; parkingLot: ParkingLot }> {
+    const parkingLot: ParkingLot | null =
+      await this.parkingLotsRepository.findOneById(
+        createParkingHistoryDto.parkingLotId,
+      );
+
+    if (!parkingLot) throw new NotFoundException('ParkingLot not found');
+
+    const vehicle: Vehicle | null =
+      await this.vehiclesRepository.findOneVehicleByLicencePlate(
+        createParkingHistoryDto.licensePlate,
+      );
+
+    return { vehicle, parkingLot };
+  }
+
+  async createParkingHistory(
+    createParkingHistoryDto: CreateParkingHistoryDto,
+  ): Promise<ParkingHistory> {
+    const { vehicle, parkingLot } = await this.findVehicleAndParkingLot(
+      createParkingHistoryDto,
+    );
+
+    if (!vehicle) {
+      return await this.createParkingHistoryForNewVehicle(
+        createParkingHistoryDto,
+        parkingLot,
+      );
+    }
+
+    if (vehicle.isParked) {
+      throw new BadRequestException(
+        'Unable to Register Entry, the license plate already exists in this or another parking lot.',
+      );
+    }
+
+    return await this.createParkingHistoryForExistingVehicle(
+      vehicle,
+      parkingLot,
+    );
+  }
+
+  private async createParkingHistoryForNewVehicle(
+    createParkingHistoryDto: CreateParkingHistoryDto,
+    parkingLot: ParkingLot,
+  ): Promise<ParkingHistory> {
+    const newVehicle: CreateVehicleDto = {
+      licensePlate: createParkingHistoryDto.licensePlate,
+      recycleBin: false,
+      isParked: true,
+    };
+
+    const vehicle: Vehicle = await this.vehiclesRepository.create(newVehicle);
+
+    const newParkingHistory: Partial<ParkingHistory> = {
+      vehicle: vehicle,
+      parkingLot: parkingLot,
+    };
+
+    return await this.parkingHistoryRepository.create(newParkingHistory);
+  }
+
+  private async createParkingHistoryForExistingVehicle(
+    vehicle: Vehicle,
+    parkingLot: ParkingLot,
+  ): Promise<ParkingHistory> {
+    const parkingHistoryOpen: ParkingHistory | null =
+      await this.parkingHistoryRepository.findOneParkingHistoryOpen(
+        vehicle.id,
+        parkingLot.id,
+      );
+
+    if (parkingHistoryOpen === null && vehicle.isParked) {
+      throw new BadRequestException('Vehicle in other Parking lot');
+    }
+
+    const updatedVehicle = await this.vehiclesRepository.update({
+      ...vehicle,
+      isParked: true,
+    });
+
+    const newParkingHistory: Partial<ParkingHistory> = {
+      vehicle: updatedVehicle,
+      parkingLot: parkingLot,
+    };
+
+    return await this.parkingHistoryRepository.create(newParkingHistory);
+  }
+
+  async closeParkingHistory(
+    createParkingHistoryDto: CreateParkingHistoryDto,
+  ): Promise<ParkingHistory> {
+    const { vehicle, parkingLot } = await this.findVehicleAndParkingLot(
+      createParkingHistoryDto,
+    );
+
+    if (!vehicle) {
+      throw new BadRequestException('Vehicle not Found');
+    }
+
+    const parkingHistoryOpen: ParkingHistory | null =
+      await this.parkingHistoryRepository.findOneParkingHistoryOpen(
+        vehicle.id,
+        parkingLot.id,
+      );
+
+    if (parkingHistoryOpen === null && vehicle.isParked) {
+      throw new BadRequestException(
+        'Unable to Register Entry, the license plate already exists in this or another parking lot.',
+      );
+    }
+
+    if (parkingHistoryOpen === null && !vehicle.isParked) {
+      throw new BadRequestException(
+        'Unable to Check Out, there is no license plate in the parking lot.',
+      );
+    }
+
+    const parkingHistoryUpdate: ParkingHistory =
+      await this.parkingHistoryRepository.updateTimeInParkingLot({
+        ...parkingHistoryOpen,
+        dateOfDeparture: new Date(),
+      });
+
+    await this.vehiclesRepository.update({
+      ...vehicle,
+      isParked: false,
+    });
+
+    return parkingHistoryUpdate;
   }
 
   findAll() {

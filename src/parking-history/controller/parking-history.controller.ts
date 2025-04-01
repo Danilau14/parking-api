@@ -19,11 +19,31 @@ export class ParkingHistoryController {
   constructor(private readonly parkingHistoryService: ParkingHistoryService) {}
 
   @Post()
-  create(
+  createOrUpdateParkingHistory(
+    @Body() createParkingHistoryDto: CreateParkingHistoryDto,
+  ): ParkingHistoryDto {
+    const parkingHistory: Promise<ParkingHistory> =
+      this.parkingHistoryService.createAndUpdatedParkingHistory(createParkingHistoryDto);
+    return plainToInstance(ParkingHistoryDto, parkingHistory);
+  }
+
+  @Post('register-entry')
+  createParkingHistory(
     @Body() createParkingHistoryDto: CreateParkingHistoryDto,
   ): ParkingHistoryDto {
     const parkingHistory: Promise<ParkingHistory> =
       this.parkingHistoryService.createParkingHistory(createParkingHistoryDto);
+    return plainToInstance(ParkingHistoryDto, parkingHistory);
+  }
+
+  @Patch('register-departure')
+  async closeParkingHistory(
+    @Body() createParkingHistoryDto: CreateParkingHistoryDto,
+  ): Promise<ParkingHistoryDto> {
+    const parkingHistory: ParkingHistory =
+      await this.parkingHistoryService.closeParkingHistory(
+        createParkingHistoryDto,
+      );
     return plainToInstance(ParkingHistoryDto, parkingHistory);
   }
 
