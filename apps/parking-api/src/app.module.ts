@@ -12,6 +12,7 @@ import { ParkingHistoryModule } from './parking-history/parking-history.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtConfigModule } from './jwt/jwt.module';
 import { IndicatorsModule } from './indicators/indicators.module';
+import { RevokedTokensModule } from './revoked-tokens/revoked-tokens.module';
 import appConfig from 'config/configuration-app';
 import databaseConfig from 'config/configuration-database';
 import emailConfig from 'config/configuration-email';
@@ -36,6 +37,7 @@ import emailConfig from 'config/configuration-email';
     AuthModule,
     JwtConfigModule,
     IndicatorsModule,
+    RevokedTokensModule,
   ],
   controllers: [AppController],
   providers: [AppService],

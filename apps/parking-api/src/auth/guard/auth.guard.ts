@@ -12,6 +12,7 @@ import { JwtPayload } from '../../jwt/interface/jwt-payload.interfaces';
 import { User } from '../../users/entities/user.entity';
 import { UsersRepository } from '../../users/repository/users.repository';
 import { IS_PUBLIC_KEY } from '../../common/decorators/is-public.decorator';
+import { RevokedTokensService } from '../../revoked-tokens/service/revoked-tokens.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -20,6 +21,7 @@ export class AuthGuard implements CanActivate {
     private readonly configService: ConfigService,
     private reflector: Reflector,
     private readonly usersRepository: UsersRepository,
+    private readonly revokedTokensService: RevokedTokensService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -33,17 +35,19 @@ export class AuthGuard implements CanActivate {
     const request: Request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
 
-    if (!authHeader) throw new UnauthorizedException('Missing  token');
+    if (!authHeader) throw new UnauthorizedException('Missing token');
 
-    if (!this.extractTokenFromHeader(request))
-      throw new UnauthorizedException('Token not provided');
+    const token = this.extractTokenFromHeader(request);
+    if (!token) throw new UnauthorizedException('Token not provided');
+
+    const isRevoked: boolean =
+      await this.revokedTokensService.isTokenRevoked(token);
+    if (isRevoked) throw new UnauthorizedException('Token has been revoked');
+
     try {
-      const jwtDecode: JwtPayload = await this.jwtService.verifyAsync(
-        authHeader.split(' ')[1],
-        {
-          secret: this.configService.get('config.jwtSecret'),
-        },
-      );
+      const jwtDecode: JwtPayload = await this.jwtService.verifyAsync(token, {
+        secret: this.configService.get('config.jwtSecret'),
+      });
 
       const user: User | null = await this.usersRepository.findByEmail(
         jwtDecode.email,
@@ -58,6 +62,7 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException(errorMessage);
     }
   }
+
   private extractTokenFromHeader(request: Request) {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;

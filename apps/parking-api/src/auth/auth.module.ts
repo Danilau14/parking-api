@@ -7,9 +7,10 @@ import { JwtConfigModule } from '../jwt/jwt.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './guard/auth.guard';
 import { RolesGuard } from './guard/roles.guard';
+import { RevokedTokensModule } from '../revoked-tokens/revoked-tokens.module';
 
 @Module({
-  imports: [UsersModule, ConfigModule, JwtConfigModule],
+  imports: [UsersModule, ConfigModule, JwtConfigModule, RevokedTokensModule],
   controllers: [AuthController],
   providers: [
     AuthService,
