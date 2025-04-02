@@ -8,6 +8,7 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
+    "seed": "NODE_ENV=development npx ts-node apps/parking-api/src/database/seed.ts",
     "start": "nest start",
     "start:dev": "NODE_ENV=development nest start --watch",
     "start:debug": "NODE_ENV=development nest start --debug --watch --insert-brk",

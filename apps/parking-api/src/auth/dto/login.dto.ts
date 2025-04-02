@@ -10,7 +10,7 @@ export class LoginDto {
   email: string;
 
   @IsString()
-  @MinLength(6)
+  @MinLength(4)
   @Transform(({ value }: TransformFnParams): string =>
     typeof value === 'string' ? value.trim() : '',
   )

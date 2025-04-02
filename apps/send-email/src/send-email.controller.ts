@@ -15,7 +15,7 @@ export class SendEmailController {
       parkerLotId: number;
     },
   ) {
-    console.log('Request recived', emailData);
+    console.log('Request received', emailData);
     return { message: 'mail sent' };
   }
 
