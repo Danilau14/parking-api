@@ -11,14 +11,6 @@ export class VehiclesRepository {
     private readonly repository: Repository<Vehicle>,
   ) {}
 
-  async findByLicencePlateIsParked(
-    licensePlate: string,
-  ): Promise<Vehicle | null> {
-    return await this.repository.findOne({
-      where: { licensePlate, isParked: true },
-    });
-  }
-
   async findOneVehicleByLicencePlate(
     licensePlate: string,
   ): Promise<Vehicle | null> {
@@ -34,13 +26,5 @@ export class VehiclesRepository {
 
   async update(data: Partial<Vehicle>): Promise<Vehicle> {
     return this.repository.save(data);
-  }
-
-  async findOneById(id: number | undefined): Promise<Vehicle | null> {
-    return this.repository.findOne({ where: { id } });
-  }
-
-  async findOnePartnerById(id: number | undefined): Promise<Vehicle | null> {
-    return this.repository.findOne({ where: { id, recycleBin: false } });
   }
 }
