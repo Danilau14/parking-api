@@ -82,4 +82,8 @@ export class ParkingHistoryRepository {
       .take(limit)
       .getManyAndCount();
   }
+
+  createQueryBuilder(parkingHistory: string) {
+    return undefined;
+  }
 }

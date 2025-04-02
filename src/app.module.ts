@@ -14,6 +14,7 @@ import { VehiclesModule } from './vehicles/vehicles.module';
 import { ParkingHistoryModule } from './parking-history/parking-history.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtConfigModule } from './jwt/jwt.module';
+import { IndicatorsModule } from './indicators/indicators.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { JwtConfigModule } from './jwt/jwt.module';
     ParkingHistoryModule,
     AuthModule,
     JwtConfigModule,
+    IndicatorsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

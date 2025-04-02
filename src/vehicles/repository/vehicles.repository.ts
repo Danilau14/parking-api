@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Vehicle } from '../entities/vehicle.entity';
 import { CreateVehicleDto } from '../dto/create-vehicle.dto';
-import { ParkingHistory } from '../../parking-history/entities/parking-history.entity';
 
 @Injectable()
 export class VehiclesRepository {
