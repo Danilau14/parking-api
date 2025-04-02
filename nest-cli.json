@@ -1,8 +1,32 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "src",
+  "sourceRoot": "apps/parking-api/src",
   "compilerOptions": {
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/parking-api/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/parking-api",
+  "projects": {
+    "parking-api": {
+      "type": "application",
+      "root": "apps/parking-api",
+      "entryFile": "main",
+      "sourceRoot": "apps/parking-api/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/parking-api/tsconfig.app.json"
+      }
+    },
+    "send-email": {
+      "type": "application",
+      "root": "apps/send-email",
+      "entryFile": "main",
+      "sourceRoot": "apps/send-email/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/send-email/tsconfig.app.json"
+      }
+    }
   }
 }

@@ -6,12 +6,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { VehiclesModule } from '../vehicles/vehicles.module';
 import { ParkingLotsModule } from '../parking-lots/parking-lots.module';
 import { ParkingHistoryRepository } from './repository/parking-history.repository';
+import { HttpModule } from '@nestjs/axios';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ParkingHistory]),
     VehiclesModule,
     ParkingLotsModule,
+    HttpModule,
+    UsersModule,
   ],
   controllers: [ParkingHistoryController],
   providers: [ParkingHistoryService, ParkingHistoryRepository],

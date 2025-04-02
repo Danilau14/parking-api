@@ -6,7 +6,7 @@ import {
   Patch,
   Param,
   Delete,
-  HttpCode, UseGuards,
+  HttpCode,
 } from '@nestjs/common';
 import { UsersService } from '../service/users.service';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -15,10 +15,14 @@ import { plainToInstance } from 'class-transformer';
 import { UserDto } from '../dto/user.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../entities/user.entity';
+import { EmailNotificationService } from '../service/email-notification.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly emailNotificationService: EmailNotificationService,
+  ) {}
 
   @Post()
   @HttpCode(201)
@@ -28,23 +32,22 @@ export class UsersController {
     return plainToInstance(UserDto, user);
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  @Post('send-email-partner')
+  @Roles(UserRole.ADMIN)
+  async sendEmail(
+    @Body()
+    emailData: {
+      email: string;
+      message: string;
+    },
+  ) {
+    try {
+      await this.emailNotificationService.sendEmailNotificationPartner(
+        emailData,
+      );
+      return { message: 'Email sent' };
+    } catch (error) {
+      new Error(error);
+    }
   }
 }

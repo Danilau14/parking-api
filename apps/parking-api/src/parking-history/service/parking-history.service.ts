@@ -14,6 +14,7 @@ import { CreateVehicleDto } from '../../vehicles/dto/create-vehicle.dto';
 import { ParkingHistory } from '../entities/parking-history.entity';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { User, UserRole } from '../../users/entities/user.entity';
+import { EmailNotificationService } from '../../users/service/email-notification.service';
 
 @Injectable()
 export class ParkingHistoryService {
@@ -21,70 +22,8 @@ export class ParkingHistoryService {
     private readonly vehiclesRepository: VehiclesRepository,
     private readonly parkingHistoryRepository: ParkingHistoryRepository,
     private readonly parkingLotsRepository: ParkingLotsRepository,
+    private readonly emailNotificationService: EmailNotificationService,
   ) {}
-
-  async createAndUpdatedParkingHistory(
-    createParkingHistoryDto: CreateParkingHistoryDto,
-  ) {
-    const parkingLot: ParkingLot | null =
-      await this.parkingLotsRepository.findOneById(
-        createParkingHistoryDto.parkingLotId,
-      );
-
-    if (!parkingLot) throw new NotFoundException('ParkingLot not found');
-
-    let vehicle: Vehicle | null =
-      await this.vehiclesRepository.findOneVehicleByLicencePlate(
-        createParkingHistoryDto.licensePlate,
-      );
-
-    if (vehicle !== null && vehicle.isParked) {
-      const parkingHistoryOpen: ParkingHistory | null =
-        await this.parkingHistoryRepository.findOneParkingHistoryOpen(
-          vehicle.id,
-          parkingLot.id,
-        );
-
-      if (parkingHistoryOpen === null && vehicle?.isParked) {
-        throw new BadRequestException('Vehicle in other Parking lot');
-      }
-
-      if (parkingHistoryOpen) {
-        const parkingHistoryUpdate: ParkingHistory =
-          await this.parkingHistoryRepository.updateTimeInParkingLot({
-            ...parkingHistoryOpen,
-            checkOutDate: new Date(),
-          });
-
-        await this.vehiclesRepository.update({
-          ...vehicle,
-          isParked: false,
-        });
-
-        return parkingHistoryUpdate;
-      }
-    }
-    if (!vehicle) {
-      const newVehicle: CreateVehicleDto = {
-        licensePlate: createParkingHistoryDto.licensePlate,
-        recycleBin: false,
-        isParked: true,
-      };
-
-      vehicle = await this.vehiclesRepository.create(newVehicle);
-    } else {
-      vehicle = await this.vehiclesRepository.update({
-        ...vehicle,
-        isParked: true,
-      });
-    }
-    const newParkingHistory: Partial<ParkingHistory> = {
-      vehicle: vehicle,
-      parkingLot: parkingLot,
-    };
-
-    return await this.parkingHistoryRepository.create(newParkingHistory);
-  }
 
   private async findVehicleAndParkingLot(
     createParkingHistoryDto: CreateParkingHistoryDto,
@@ -124,10 +63,19 @@ export class ParkingHistoryService {
       );
     }
 
-    return await this.createParkingHistoryForExistingVehicle(
-      vehicle,
-      parkingLot,
-    );
+    const newParkingHistory: ParkingHistory =
+      await this.createParkingHistoryForExistingVehicle(vehicle, parkingLot);
+
+    if (parkingLot.user) {
+      await this.emailNotificationService.sendEmailNotificationCreateRegister({
+        email: parkingLot.user.email,
+        licensePlate: vehicle.licensePlate,
+        message: 'A new vehicle has entered the parking lot.',
+        parkingLotId: parkingLot.id,
+      });
+    }
+
+    return newParkingHistory;
   }
 
   private async createParkingHistoryForNewVehicle(
