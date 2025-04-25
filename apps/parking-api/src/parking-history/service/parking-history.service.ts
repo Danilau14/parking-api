@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateParkingHistoryDto } from '../dto/create-parking-history.dto';
 import { UpdateParkingHistoryDto } from '../dto/update-parking-history.dto';
@@ -45,7 +46,15 @@ export class ParkingHistoryService {
 
   async createParkingHistory(
     createParkingHistoryDto: CreateParkingHistoryDto,
+    user: User
   ): Promise<ParkingHistory> {
+    const parkingLotByUser: ParkingLot | null =  await this.parkingLotsRepository.findByParkingLotAndUser(
+      createParkingHistoryDto.parkingLotId, 
+      user
+    );
+
+    if(!parkingLotByUser) throw new UnauthorizedException('This parking lot does not belong to the member')
+
     const { vehicle, parkingLot } = await this.findVehicleAndParkingLot(
       createParkingHistoryDto,
     );
@@ -150,9 +159,9 @@ export class ParkingHistoryService {
       createParkingHistoryDto,
     );
 
-    if (!vehicle) {
-      throw new BadRequestException('Vehicle not Found');
-    }
+    if (!vehicle) throw new NotFoundException('Vehicle not Found');
+
+    if (!parkingLot) throw new NotFoundException('ParkingLot not found');
 
     const parkingHistoryOpen: ParkingHistory | null =
       await this.parkingHistoryRepository.findOneParkingHistoryOpen(
@@ -171,12 +180,15 @@ export class ParkingHistoryService {
         'Unable to Check Out, there is no license plate in the parking lot.',
       );
     }
-
+  
     const parkingHistoryUpdate: ParkingHistory =
-      await this.parkingHistoryRepository.updateTimeInParkingLot({
-        ...parkingHistoryOpen,
-        checkOutDate: new Date(),
-      });
+      await this.parkingHistoryRepository.updateTimeAndCostInParkingHistory(
+        parkingLot.costPerHour,
+        {
+          ...parkingHistoryOpen,
+          checkOutDate: new Date(),
+        }
+      );
 
     await this.vehiclesRepository.update({
       ...vehicle,

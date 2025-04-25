@@ -32,10 +32,12 @@ export class ParkingHistoryController {
   @Roles(UserRole.PARTNER)
   async createParkingHistory(
     @Body() createParkingHistoryDto: CreateParkingHistoryDto,
+    @Req() request: RequestWithUserInterface
   ) {
     const parkingHistory: ParkingHistory =
       await this.parkingHistoryService.createParkingHistory(
         createParkingHistoryDto,
+        request.user
       );
     return {
       id: parkingHistory.id,

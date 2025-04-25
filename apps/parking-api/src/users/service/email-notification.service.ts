@@ -21,12 +21,17 @@ export class EmailNotificationService {
     message: string;
     parkingLotId: number;
   }) {
-    await this.httpService.axiosRef.post(`${this.emailServiceUrl}/send-email`, {
-      email: emailData.email,
-      licensePlate: emailData.licensePlate,
-      message: emailData.message,
-      parkingLotId: emailData.parkingLotId,
-    });
+    try {
+      await this.httpService.axiosRef.post(`${this.emailServiceUrl}/send-email`, {
+        email: emailData.email,
+        licensePlate: emailData.licensePlate,
+        message: emailData.message,
+        parkingLotId: emailData.parkingLotId,
+      });
+      console.log('Mail sent')
+    } catch (AxiosError) {
+      console.log('Mail could not be sent')
+    }
   }
 
   async sendEmailNotificationPartner(emailData: {

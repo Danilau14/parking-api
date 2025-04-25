@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateParkingLotDto } from '../dto/create-parking-lot.dto';
 import { ParkingLotsRepository } from '../repository/parking-lots.repository';
 import { UsersRepository } from '../../users/repository/users.repository';
@@ -89,10 +89,19 @@ export class ParkingLotsService {
       parkingLotToUpdate.user = partner;
     }
 
-    if (updateParkingLotDto.size) {
-      parkingLotToUpdate.size = updateParkingLotDto.size;
-    }
+    if (updateParkingLotDto.size && updateParkingLotDto.size > parkingLotToUpdate.size) {
+        parkingLotToUpdate.freeSpaces = parkingLotToUpdate.freeSpaces + (updateParkingLotDto.size - parkingLotToUpdate.size)
+        parkingLotToUpdate.size = updateParkingLotDto.size;
+    } 
 
+    if (updateParkingLotDto.size && updateParkingLotDto.size < parkingLotToUpdate.size) {
+      if (parkingLotToUpdate.freeSpaces === 0 
+        || parkingLotToUpdate.size - parkingLotToUpdate.freeSpaces > updateParkingLotDto.size
+      ) throw new BadRequestException ('The size of the parking lot cannot be less than the number of current vehicles.')
+        parkingLotToUpdate.freeSpaces =  parkingLotToUpdate.freeSpaces - (parkingLotToUpdate.size - updateParkingLotDto.size)
+        parkingLotToUpdate.size = updateParkingLotDto.size;
+    }
+    
     if (updateParkingLotDto.costPerHour) {
       parkingLotToUpdate.costPerHour = updateParkingLotDto.costPerHour;
     }

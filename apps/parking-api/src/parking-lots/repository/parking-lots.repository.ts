@@ -33,8 +33,6 @@ export class ParkingLotsRepository {
         'user.id',
       ]);
 
-    console.log(userId);
-
     if (userId !== null) {
       queryBuilder.where('user.id = :userId', { userId });
     }

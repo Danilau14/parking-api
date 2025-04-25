@@ -66,7 +66,7 @@ export class IndicatorsService {
       .createQueryBuilder('parkingHistory')
       .leftJoinAndSelect('parkingHistory.parkingLot', 'parkingLot')
       .select(
-        'SUM("parkingHistory"."timeInParkingLot"::float / 3600 * "parkingLot"."costPerHour")',
+        '(SUM("parkingHistory"."costTotalParkingLot"))',
         'earnings',
       )
       .where('"parkingHistory"."parkingLotId" = :parkingLotId', {
@@ -88,7 +88,7 @@ export class IndicatorsService {
       .leftJoinAndSelect('parkingHistory.parkingLot', 'parkingLot')
       .select('parkingHistory.parkingLotId', 'parkingLotId')
       .addSelect(
-        'SUM("parkingHistory"."timeInParkingLot"::double precision / 3600 * "parkingLot"."costPerHour")',
+        '(SUM("parkingHistory"."costTotalParkingLot"))',
         'earnings',
       )
       .where('"parkingHistory"."timeInParkingLot" IS NOT NULL')

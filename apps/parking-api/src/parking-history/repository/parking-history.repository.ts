@@ -42,19 +42,24 @@ export class ParkingHistoryRepository {
     return this.repository.save(data);
   }
 
-  async updateTimeInParkingLot(
-    data: Partial<ParkingHistory>,
+  async updateTimeAndCostInParkingHistory(
+  costPerHour: number, 
+  data: Partial<ParkingHistory>,
   ): Promise<ParkingHistory> {
     if (data.checkOutDate && data.checkInDate) {
       const timeInMilliseconds: number =
         data.checkOutDate.getTime() - data.checkInDate.getTime();
       const timeInSeconds: number = timeInMilliseconds / 1000;
       const timeInParkingLot: number = Math.floor(timeInSeconds);
+      console.log(timeInParkingLot)
+      const costTotalParkingLot : number = Math.round(((costPerHour / 3600) * timeInParkingLot) * 100) / 100
+      console.log(costTotalParkingLot)
       const dataUpdate = {
         ...data,
         timeInParkingLot,
+        costTotalParkingLot
       };
-
+      
       return this.repository.save(dataUpdate);
     }
     throw new BadRequestException('Dates must be different null');

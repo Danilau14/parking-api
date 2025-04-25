@@ -5,6 +5,13 @@ Parking API es un sistema para gestionar estacionamientos, incluyendo el registr
 
 ---
 
+## Requisitos del proyecto
+```bash
+  - Node.js (v20.19.0)
+  - npm (10.8.2)
+  - postgresql(16)
+```
+
 ## 🚀 Instalación
 
 ### 1️⃣ Clonar el repositorio
@@ -41,7 +48,7 @@ MAIL_PORT=1025
 ## 🐳 Configuración con Docker
 Si deseas correr el servicio con Docker, usa:
 ```bash
-  docker-compose up -d
+  docker-compose up -d --build
 ```
 Esto levantará la base de datos y MailHog para pruebas de correo.
 

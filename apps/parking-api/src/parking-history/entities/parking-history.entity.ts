@@ -22,6 +22,9 @@ export class ParkingHistory {
   @Column({ nullable: true })
   timeInParkingLot: number;
 
+  @Column({nullable : true, type: 'float'})
+  costTotalParkingLot: number;
+
   @ManyToOne(
     (): typeof Vehicle => Vehicle,
     (vehicle: Vehicle): ParkingHistory[] => vehicle.parkingHistories,
